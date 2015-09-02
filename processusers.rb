@@ -15,15 +15,29 @@ trows.each {|ip|
   todaysips[ip[0]] = true #[0] because its sql. don't fight it. gemiliscous
 }
 tdb.close
-# todaysips.each {|k,v| puts "Today has #{k}"}
 
-# so many ways to find oddities. Here's one of many
-oddsql = "select users.type, downloads.* from downloads, users where ptype != 'P' and refer='' and browser != 'Ruby' and users.ip = userip"
+todays_catch = []
+
+# so many ways to find oddities.
 # There are others: maybe/iffys should not have large activity values;
-iffysql = "select * from users where type IN ('iffy','maybe') and activity>3"
+iffysql = "SELECT * FROM users WHERE type IN ('iffy','maybe') AND activity>3"
 rows = db.execute(iffysql)
 rows.each do |ip,type,cnt,dt|
   if todaysips[ip]
-    db.execute("INSERT INTO flagged (flagip, flagdate) VALUES (\"#{ip}\",#{dt})")
+    todays_catch << ip
+    db.execute("INSERT OR IGNORE INTO flagged (flagip, flagdate) VALUES (\"#{ip}\",#{dt})")
   end
 end
+# Catch those who don't have refer - it's either a leech, bot-experiment, 
+# or sometimes it's Shoes (packaging related)
+refsql = "select users.type, downloads.* from downloads, users where ptype != 'P'\
+ and refer='' and (browser != 'Ruby' AND browser NOT Like 'Shoes%') and users.ip = userip"
+rows = db.execute(refsql)
+rows.each do |type,idx,ip,ptype,version,gui,arch,reqdate,path,refer,browser|
+  if todaysips[ip]
+    todays_catch << ip
+    db.execute("INSERT OR IGNORE INTO flagged (flagip, flagdate) VALUES (\"#{ip}\",#{reqdate})")
+  end
+end
+puts "/n== Todays Catch in flagged table ==/n"
+todays_catch.sort.each {|ip| puts "  #{ip}"}
