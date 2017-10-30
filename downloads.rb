@@ -26,7 +26,7 @@ rows.each do |idx,rid,sid,lineno,ip,logname, user, dt,verb,path,ver,st,sz,ref,br
     shoeslst << [ip, path, dt, ref, br]
     next
   end
-  if path =~ /\/public\/shoes\/shoes-3.2/ && st == 200
+  if path =~ /\/public\/shoes\/shoes-3.\d/ && st == 200
     if sz.to_i < 10000000 #10MB Partial download? 
       key = ip+'|'+path
       if !partial[key]

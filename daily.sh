@@ -4,7 +4,12 @@
 echo "/n==== Get log ====/n"
 cd /home/ccoupe/Projects/shoeslogs
 source ~/.rvm/scripts/rvm
+rvm use 2.1.6
 sftp site:logs/shoes.mvmanila.com/http/access.log.0
+mv access.log.0 http.log
+sftp site:logs/shoes.mvmanila.com/https/access.log.0
+mv access.log.0 https.log
+cat http.log https.log >>access.log.0
 echo "/n===== Load Log ====/n"
 ./loaddb.rb access.log.0 
 #./shoesusers.rb
